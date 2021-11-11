@@ -1,1 +1,6 @@
 precheck_results
+*.vcd
+*.hex
+*.spice
+*.def
+*.gds

@@ -81,6 +81,12 @@ module user_project_wrapper #(
 /*--------------------------------------*/
 /* User project is instantiated  here   */
 /*--------------------------------------*/
+wire clk;
+wire csb1, csb0, web0;
+wire [4-1:0] wmask0;
+wire [31:0] dout1, dout0, din0;
+wire [7:0] addrA_i, addrB_i;
+
 
 user_proj_example mprj (
 `ifdef USE_POWER_PINS
@@ -115,8 +121,38 @@ user_proj_example mprj (
     .io_oeb(io_oeb),
 
     // IRQ
-    .irq(user_irq)
+    .irq(user_irq),
+
+    //SRAM_GLOBAL IF
+    .clk(clk),
+    .csb0(csb0),
+    .csb1(csb1),
+    .web0(web0),
+    //.wmask0(wmask0),
+    .din0(din0),
+    .dout0(dout0),
+    .dout1(dout1)
 );
+
+sky130_sram_1kbyte_1rw1r_32x256_8 
+SRAM0 (
+    `ifdef USE_POWER_PINS
+        .vccd1(vccd1),    // User area 1 1.8V supply
+        .vssd1(vssd1),    // User area 1 digital ground
+    `endif
+        .clk0  (clk    ),
+        .csb0  (csb0   ),
+        .web0  (web0   ),
+        .wmask0(wbs_sel_i ),
+        .addr0 (wbs_adr_i[9:2]),
+        .din0  (din0   ),
+        .dout0 (dout0  ),
+        .clk1  (clk    ),
+        .csb1  (csb1   ),
+        .addr1 (wbs_adr_i[9:2]),
+        .dout1 (dout1  )
+    );
+
 
 endmodule	// user_project_wrapper
 

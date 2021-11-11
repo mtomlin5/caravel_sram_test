@@ -12,154 +12,130 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // SPDX-License-Identifier: Apache-2.0
+`define MPRJ_IO_PADS 38
 
-`default_nettype none
-/*
- *-------------------------------------------------------------
- *
- * user_proj_example
- *
- * This is an example of a (trivially simple) user project,
- * showing how the user project can connect to the logic
- * analyzer, the wishbone bus, and the I/O pads.
- *
- * This project generates an integer count, which is output
- * on the user area GPIO pads (digital output only).  The
- * wishbone connection allows the project to be controlled
- * (start and stop) from the management SoC program.
- *
- * See the testbenches in directory "mprj_counter" for the
- * example programs that drive this user project.  The three
- * testbenches are "io_ports", "la_test1", and "la_test2".
- *
- *-------------------------------------------------------------
- */
-
-module user_proj_example #(
-    parameter BITS = 32
-)(
-`ifdef USE_POWER_PINS
-    inout vccd1,	// User area 1 1.8V supply
-    inout vssd1,	// User area 1 digital ground
-`endif
-
+module user_proj_example #(parameter BITS = 32) (
+    `ifdef USE_POWER_PINS
+    inout                      vccd1      , // User area 1 1.8V supply
+    inout                      vssd1      , // User area 1 digital ground
+    `endif
     // Wishbone Slave ports (WB MI A)
-    input wb_clk_i,
-    input wb_rst_i,
-    input wbs_stb_i,
-    input wbs_cyc_i,
-    input wbs_we_i,
-    input [3:0] wbs_sel_i,
-    input [31:0] wbs_dat_i,
-    input [31:0] wbs_adr_i,
-    output wbs_ack_o,
-    output [31:0] wbs_dat_o,
-
+    input                      wb_clk_i   ,
+    input                      wb_rst_i   ,
+    input                      wbs_stb_i  ,
+    input                      wbs_cyc_i  ,
+    input                      wbs_we_i   ,
+    input  [              3:0] wbs_sel_i  ,
+    input  [             31:0] wbs_dat_i  ,
+    input  [             31:0] wbs_adr_i  ,
+    output                     wbs_ack_o  ,
+    output [             31:0] wbs_dat_o  ,
     // Logic Analyzer Signals
-    input  [127:0] la_data_in,
-    output [127:0] la_data_out,
-    input  [127:0] la_oenb,
-
+    input  [            127:0] la_data_in ,
+    output [            127:0] la_data_out,
+    input  [            127:0] la_oenb    ,
     // IOs
-    input  [`MPRJ_IO_PADS-1:0] io_in,
-    output [`MPRJ_IO_PADS-1:0] io_out,
-    output [`MPRJ_IO_PADS-1:0] io_oeb,
-
+    input  [`MPRJ_IO_PADS-1:0] io_in      ,
+    output [`MPRJ_IO_PADS-1:0] io_out     ,
+    output [`MPRJ_IO_PADS-1:0] io_oeb     ,
     // IRQ
-    output [2:0] irq
+    output [              2:0] irq        ,
+    
+    output                     clk        ,
+    output                     csb0       ,
+    output                     web0       ,
+    output [             31:0] din0       ,
+    input  [             31:0] dout0      ,
+    output                     csb1       ,
+    input  [             31:0] dout1
 );
+
+    // WB Signals 
     wire clk;
     wire rst;
-
+    
     wire [`MPRJ_IO_PADS-1:0] io_in;
     wire [`MPRJ_IO_PADS-1:0] io_out;
     wire [`MPRJ_IO_PADS-1:0] io_oeb;
-
-    wire [31:0] rdata; 
-    wire [31:0] wdata;
-    wire [BITS-1:0] count;
 
     wire valid;
     wire [3:0] wstrb;
     wire [31:0] la_write;
 
+    // WB ACK 
+    reg ready;
+    always @(posedge clk) begin : proc_
+        if(rst) begin
+            ready <= 0;
+        end else begin
+            ready <= 0;
+            if (~ready & (we | re))
+                ready <= 1;
+        end
+    end
+    assign wbs_ack_o = ready;
+
+
+    wire we;
+    wire re;
+    assign we = valid && wbs_we_i;
+    assign re = valid && ~wbs_we_i;
+    
+    assign csb0 = ~((we | re) & (wbs_adr_i[31:20] == 12'h300));
+    assign web0 = ~we;
+    assign csb1 = ~(re  & (wbs_adr_i[31:20] == 12'h30F));
+
+    //assign wmask0 = 4'b1111;
+
+    assign din0 = wbs_dat_i;
+
+    wire write_io;
+    reg [37:0] io_int;
+    reg io_index;
+    assign write_io = (we && (wbs_adr_i == 32'h30800000));
+    always @(posedge clk) begin
+        if(wb_rst_i) begin
+            io_int <= {38{1'b0}};
+            io_index <= 0;
+        end else if(write_io && ready) begin
+            io_int[37:32] <= {6{io_index}};
+            io_int[31:0] <= wbs_dat_i;
+            io_index <= ~io_index;
+        end
+    end
+
+    reg [31:0] o_data;
+    always @(*) begin
+        case (wbs_adr_i[31:20])
+            12'h300: o_data = dout0;
+            12'h30F: o_data = dout1;
+            default : o_data = 32'h00000000;
+        endcase
+    end
+
     // WB MI A
     assign valid = wbs_cyc_i && wbs_stb_i; 
     assign wstrb = wbs_sel_i & {4{wbs_we_i}};
-    assign wbs_dat_o = rdata;
-    assign wdata = wbs_dat_i;
+    assign wbs_dat_o = o_data;
 
     // IO
-    assign io_out = count;
+    assign io_out = io_int;
     assign io_oeb = {(`MPRJ_IO_PADS-1){rst}};
 
     // IRQ
-    assign irq = 3'b000;	// Unused
+    assign irq = 3'b000;    // Unused
 
     // LA
-    assign la_data_out = {{(127-BITS){1'b0}}, count};
+    //assign la_data_out = {{(127-BITS){1'b0}}, count};
+
+    //TODOOOOOOO
+    assign la_data_out = {wbs_adr_i, wbs_dat_i, io_int, {(64-38){1'b0}}};
     // Assuming LA probes [63:32] are for controlling the count register  
     assign la_write = ~la_oenb[63:32] & ~{BITS{valid}};
     // Assuming LA probes [65:64] are for controlling the count clk & reset  
     assign clk = (~la_oenb[64]) ? la_data_in[64]: wb_clk_i;
     assign rst = (~la_oenb[65]) ? la_data_in[65]: wb_rst_i;
 
-    counter #(
-        .BITS(BITS)
-    ) counter(
-        .clk(clk),
-        .reset(rst),
-        .ready(wbs_ack_o),
-        .valid(valid),
-        .rdata(rdata),
-        .wdata(wbs_dat_i),
-        .wstrb(wstrb),
-        .la_write(la_write),
-        .la_input(la_data_in[63:32]),
-        .count(count)
-    );
-
-endmodule
-
-module counter #(
-    parameter BITS = 32
-)(
-    input clk,
-    input reset,
-    input valid,
-    input [3:0] wstrb,
-    input [BITS-1:0] wdata,
-    input [BITS-1:0] la_write,
-    input [BITS-1:0] la_input,
-    output ready,
-    output [BITS-1:0] rdata,
-    output [BITS-1:0] count
-);
-    reg ready;
-    reg [BITS-1:0] count;
-    reg [BITS-1:0] rdata;
-
-    always @(posedge clk) begin
-        if (reset) begin
-            count <= 0;
-            ready <= 0;
-        end else begin
-            ready <= 1'b0;
-            if (~|la_write) begin
-                count <= count + 1;
-            end
-            if (valid && !ready) begin
-                ready <= 1'b1;
-                rdata <= count;
-                if (wstrb[0]) count[7:0]   <= wdata[7:0];
-                if (wstrb[1]) count[15:8]  <= wdata[15:8];
-                if (wstrb[2]) count[23:16] <= wdata[23:16];
-                if (wstrb[3]) count[31:24] <= wdata[31:24];
-            end else if (|la_write) begin
-                count <= la_write & la_input;
-            end
-        end
-    end
 
 endmodule
 `default_nettype wire

@@ -1,53 +1,109 @@
-# SPDX-FileCopyrightText: 2020 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# SPDX-License-Identifier: Apache-2.0
+set script_dir [file dirname [file normalize [info script]]]
 
+########################################################################################
+# Setup
+########################################################################################
 set ::env(PDK) "sky130A"
 set ::env(STD_CELL_LIBRARY) "sky130_fd_sc_hd"
 
-set script_dir [file dirname [file normalize [info script]]]
-
+# User config
 set ::env(DESIGN_NAME) user_proj_example
 
 set ::env(VERILOG_FILES) "\
 	$::env(CARAVEL_ROOT)/verilog/rtl/defines.v \
-	$script_dir/../../verilog/rtl/user_proj_example.v"
+	$script_dir/../../verilog/rtl/user_proj_example.v "
+	#$script_dir/../../verilog/rtl/dpram_gen.v
 
-set ::env(DESIGN_IS_CORE) 0
+# set ::env(VERILOG_FILES_BLACKBOX) "\
+# 	$script_dir/../../verilog/rtl/sky130_sram_1kbyte_1rw1r_32x256_8/sky130_sram_1kbyte_1rw1r_32x256_8.v"
+# #$script_dir/../../verilog/rtl/openram_testchip.v
 
+# set ::env(EXTRA_LEFS) "\
+# 	$script_dir/../../lef/sky130_sram_1kbyte_1rw1r_32x256_8.lef"
+# #	$script_dir/../../lef/openram_testchip.lef
+
+
+# set ::env(EXTRA_GDS_FILES) "\
+# 	$script_dir/../../gds/sky130_sram_1kbyte_1rw1r_32x256_8.gds"
+# #	$script_dir/../../gds/openram_testchip.gds
+
+set ::env(RESET_PORT) {wb_rst_i}
+
+
+
+########################################################################################
+# Timing
+########################################################################################
 set ::env(CLOCK_PORT) "wb_clk_i"
-set ::env(CLOCK_NET) "counter.clk"
-set ::env(CLOCK_PERIOD) "10"
+set ::env(CLOCK_NET) "clk"
+set ::env(CLOCK_PERIOD) "20"
 
+
+########################################################################################
+# Synthesis
+########################################################################################
+#set ::env(BASE_SDC_FILE) "$script_dir/user_proj_example.sdc"
+# set ::env(SYNTH_CAP_LOAD) "33.5"
+# set ::env(SYNTH_MAX_FANOUT) "4"
+# set ::env(SYNTH_MAX_TRAN) 1
+
+########################################################################################
+# Floorplanning
+########################################################################################
+set ::env(DESIGN_IS_CORE) 0
 set ::env(FP_SIZING) absolute
-set ::env(DIE_AREA) "0 0 900 600"
+set ::env(DIE_AREA) "0 0 250 250"
+set ::env(FP_PIN_ORDER_CFG) $::env(DESIGN_DIR)/pin_order.cfg
+#set ::env(MACRO_PLACEMENT_CFG) $::env(DESIGN_DIR)/macro.cfg
+set ::env(FP_PDN_IRDROP) 0
 
-set ::env(FP_PIN_ORDER_CFG) $script_dir/pin_order.cfg
+# set ::env(FP_PDN_MACROS) "\
+# 	SRAM0 vccd1 vssd1
+# 	"
 
-set ::env(PL_BASIC_PLACEMENT) 1
-set ::env(PL_TARGET_DENSITY) 0.05
+########################################################################################
+# Placement
+########################################################################################
 
-# Maximum layer used for routing is metal 4.
-# This is because this macro will be inserted in a top level (user_project_wrapper) 
-# where the PDN is planned on metal 5. So, to avoid having shorts between routes
-# in this macro and the top level metal 5 stripes, we have to restrict routes to metal4.  
+#set ::env(PL_BASIC_PLACEMENT) 1
+set ::env(PL_TARGET_DENSITY) 0.3
+
+########################################################################################
+# Routing
+########################################################################################
+
 set ::env(GLB_RT_MAXLAYER) 5
+set ::env(ROUTING_CORES) 24
 
+########################################################################################
+# CHECK ME
+########################################################################################
 # You can draw more power domains if you need to 
 set ::env(VDD_NETS) [list {vccd1}]
 set ::env(GND_NETS) [list {vssd1}]
+set ::env(SYNTH_USE_PG_PINS_DEFINES) "USE_POWER_PINS"
+set ::env(DIODE_INSERTION_STRATEGY) 4
+# set ::env(GLB_RT_MAX_DIODE_INS_ITERS) 50
+# set ::env(GLB_RT_ANT_ITERS) 50
+set ::env(PL_RANDOM_GLB_PLACEMENT) 1
+set ::env(USE_ARC_ANTENNA_CHECK) 0
 
-set ::env(DIODE_INSERTION_STRATEGY) 4 
-# If you're going to use multiple power domains, then disable cvc run.
-set ::env(RUN_CVC) 1
+########################################################################################
+# Timing
+########################################################################################
+
+########################################################################################
+# Timing
+########################################################################################
+
+
+########################################################################################
+# EOF
+########################################################################################
+set filename $::env(DESIGN_DIR)/$::env(PDK)_$::env(STD_CELL_LIBRARY)_config.tcl
+if { [file exists $filename] == 1} {
+	source $filename
+}
+
+
+
