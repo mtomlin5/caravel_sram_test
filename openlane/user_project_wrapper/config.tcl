@@ -45,6 +45,10 @@ set ::env(CLOCK_PERIOD) "20"
 
 ## Internal Macros
 ### Macro PDN Connections
+# set ::env(FP_PDN_MACRO_HOOKS) "\
+# 	mprj vccd1 vssd1 \
+# 	SRAM0 vccd1 vssd1 \
+# 	SRAM1 vccd1 vssd1"
 set ::env(FP_PDN_MACRO_HOOKS) "\
 	mprj vccd1 vssd1 \
 	SRAM0 vccd1 vssd1"
@@ -56,24 +60,45 @@ set ::env(MACRO_PLACEMENT_CFG) $script_dir/macro.cfg
 set ::env(VERILOG_FILES_BLACKBOX) "\
 	$::env(CARAVEL_ROOT)/verilog/rtl/defines.v \
 	$script_dir/../../verilog/rtl/user_proj_example.v \
-	$script_dir/../../verilog/rtl/sky130_sram_1kbyte_1rw1r_32x256_8/sky130_sram_1kbyte_1rw1r_32x256_8.v"
+	$script_dir/../../verilog/rtl/sky130_sram_1kbyte_1rw1r_32x256_8/sky130_sram_1kbyte_1rw1r_32x256_8.v \
+	$script_dir/../../verilog/rtl/sky130_sram_2kbyte_1rw1r_32x512_8/sky130_sram_2kbyte_1rw1r_32x512_8.v"
 
 set ::env(EXTRA_LEFS) "\
 	$script_dir/../../lef/user_proj_example.lef
-	$script_dir/../../lef/sky130_sram_1kbyte_1rw1r_32x256_8.lef"
+	$script_dir/../../lef/sky130_sram_1kbyte_1rw1r_32x256_8.lef \
+	$script_dir/../../lef/sky130_sram_2kbyte_1rw1r_32x512_8.lef"
 
 set ::env(EXTRA_GDS_FILES) "\
 	$script_dir/../../gds/user_proj_example.gds \
-	$script_dir/../../gds/sky130_sram_1kbyte_1rw1r_32x256_8.gds"
+	$script_dir/../../gds/sky130_sram_1kbyte_1rw1r_32x256_8.gds \
+	$script_dir/../../gds/sky130_sram_2kbyte_1rw1r_32x512_8.gds"
 
 set ::env(GLB_RT_MAXLAYER) 5
 
+# set ::env(GLB_RT_OBS) "li1 2200.00 2410 2679.78 2807.5,  \
+# 	               		met1 2200.00 2410 2679.78 2807.5, \
+# 	               		met2 2200.00 2410 2679.78 2807.5, \
+# 	              		met3 2200.00 2410 2679.78 2807.5, \
+# 	              		met4 2200.00 2410 2679.78 2807.5, \
+# 		       			met5 0 0 2920 3520 \
+# 		       			li1 815 2410 1498.1 2826.53,  \
+# 	               	   met1 815 2410 1498.1 2826.53, \
+# 	               	   met2 815 2410 1498.1 2826.53, \
+# 	              	   met3 815 2410 1498.1 2826.53, \
+# 	              	   met4 815 2410 1498.1 2826.53"
 set ::env(GLB_RT_OBS) "li1 2200.00 1200.00 2679.78 1597.5,  \
 	               		met1 2200.00 1200.00 2679.78 1597.5, \
 	               		met2 2200.00 1200.00 2679.78 1597.5, \
 	              		met3 2200.00 1200.00 2679.78 1597.5, \
 	              		met4 2200.00 1200.00 2679.78 1597.5, \
 		       			met5 0 0 2920 3520"
+
+# set ::env(GLB_RT_OBS) "li1 1175 840 1858 1256.5,  \
+# 	               	   met1 1175 840 1858 1256.5, \
+# 	               	   met2 1175 840 1858 1256.5, \
+# 	              	   met3 1175 840 1858 1256.5, \
+# 	              	   met4 1175 840 1858 1256.5, \
+# 		       		   met5 0 0 2920 3520"
 # set ::env(GLB_RT_OBS) "li1 2200.00 1200.00 2680 1597.7,  \
 # 	               		met1 2200.00 1200.00 2680 1597.7, \
 # 	               		met2 2200.00 1200.00 2680 1597.7, \

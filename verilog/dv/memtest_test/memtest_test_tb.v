@@ -53,7 +53,7 @@ module memtest_test_tb;
 		$dumpvars(0, memtest_test_tb);
 
 		// Repeat cycles of 1000 clock edges as needed to complete testbench
-		repeat (50) begin
+		repeat (75) begin
 			repeat (1000) @(posedge clock);
 			// $display("+1000 cycles");
 		end
@@ -101,6 +101,20 @@ module memtest_test_tb;
 	    wait(mprj_io_0 == 8'h1E);
 	    wait(mprj_io_0 == 8'h28);
 	    wait(mprj_io_0 == 8'hFF);
+
+	    // wait(mprj_io_0 == 8'h00);
+	    // wait(mprj_io_0 == 8'h05);
+	    // wait(mprj_io_0 == 8'h0A);
+	    // wait(mprj_io_0 == 8'h0F);
+	    // wait(mprj_io_0 == 8'h14);
+	    // wait(mprj_io_0 == 8'hFF);
+
+	    // wait(mprj_io_0 == 8'h00);
+	    // wait(mprj_io_0 == 8'h05);
+	    // wait(mprj_io_0 == 8'h0A);
+	    // wait(mprj_io_0 == 8'h0F);
+	    // wait(mprj_io_0 == 8'h14);
+	    // wait(mprj_io_0 == 8'hFF);
 		
 		`ifdef GL
 	    	$display("Monitor: Test 1 Mega-Project IO (GL) Passed");

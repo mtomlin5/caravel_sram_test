@@ -53,7 +53,6 @@ module user_project_wrapper (user_clock2,
  output [31:0] wbs_dat_o;
  input [3:0] wbs_sel_i;
 
- wire clk;
  wire csb0;
  wire csb1;
  wire \din0[0] ;
@@ -157,8 +156,8 @@ module user_project_wrapper (user_clock2,
  sky130_sram_1kbyte_1rw1r_32x256_8 SRAM0 (.csb0(csb0),
     .csb1(csb1),
     .web0(web0),
-    .clk0(clk),
-    .clk1(clk),
+    .clk0(wb_clk_i),
+    .clk1(wb_clk_i),
     .vccd1(vccd1),
     .vssd1(vssd1),
     .addr0({wbs_adr_i[9],
@@ -277,8 +276,7 @@ module user_project_wrapper (user_clock2,
     wbs_sel_i[2],
     wbs_sel_i[1],
     wbs_sel_i[0]}));
- user_proj_example mprj (.clk(clk),
-    .csb0(csb0),
+ user_proj_example mprj (.csb0(csb0),
     .csb1(csb1),
     .vccd1(vccd1),
     .vssd1(vssd1),

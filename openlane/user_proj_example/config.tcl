@@ -85,7 +85,7 @@ set ::env(SYNTH_USE_PG_PINS_DEFINES) "USE_POWER_PINS"
 set ::env(DIODE_INSERTION_STRATEGY) 4
 # set ::env(GLB_RT_MAX_DIODE_INS_ITERS) 50
 # set ::env(GLB_RT_ANT_ITERS) 50
-set ::env(PL_RANDOM_GLB_PLACEMENT) 1
+#set ::env(PL_RANDOM_GLB_PLACEMENT) 1
 set ::env(USE_ARC_ANTENNA_CHECK) 0
 
 ########################################################################################

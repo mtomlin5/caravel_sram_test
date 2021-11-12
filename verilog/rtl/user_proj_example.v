@@ -40,14 +40,18 @@ module user_proj_example #(parameter BITS = 32) (
     output [`MPRJ_IO_PADS-1:0] io_oeb     ,
     // IRQ
     output [              2:0] irq        ,
-    
-    output                     clk        ,
+    //output                     clk        ,
     output                     csb0       ,
     output                     web0       ,
+    // output                     web2       ,
     output [             31:0] din0       ,
     input  [             31:0] dout0      ,
     output                     csb1       ,
-    input  [             31:0] dout1
+    // output                     csb2       ,
+    // output                     csb3       ,
+    input  [             31:0] dout1      
+    // input  [             31:0] dout2      ,
+    // input  [             31:0] dout3      
 );
 
     // WB Signals 
@@ -80,10 +84,14 @@ module user_proj_example #(parameter BITS = 32) (
     wire re;
     assign we = valid && wbs_we_i;
     assign re = valid && ~wbs_we_i;
-    
+
     assign csb0 = ~((we | re) & (wbs_adr_i[31:20] == 12'h300));
-    assign web0 = ~we;
-    assign csb1 = ~(re  & (wbs_adr_i[31:20] == 12'h30F));
+    assign csb1 = ~(re  & (wbs_adr_i[31:20] == 12'h301));
+    // assign csb2 = ~((we | re) & (wbs_adr_i[31:20] == 12'h302));
+    // assign csb3 = ~(re  & (wbs_adr_i[31:20] == 12'h303));
+
+    assign web0 = ~(we & (wbs_adr_i[31:20] == 12'h300));
+    // assign web2 = ~(we & (wbs_adr_i[31:20] == 12'h302));
 
     //assign wmask0 = 4'b1111;
 
@@ -108,7 +116,9 @@ module user_proj_example #(parameter BITS = 32) (
     always @(*) begin
         case (wbs_adr_i[31:20])
             12'h300: o_data = dout0;
-            12'h30F: o_data = dout1;
+            12'h301: o_data = dout1;
+            // 12'h302: o_data = dout2;
+            // 12'h303: o_data = dout3;
             default : o_data = 32'h00000000;
         endcase
     end
@@ -129,7 +139,8 @@ module user_proj_example #(parameter BITS = 32) (
     //assign la_data_out = {{(127-BITS){1'b0}}, count};
 
     //TODOOOOOOO
-    assign la_data_out = {wbs_adr_i, wbs_dat_i, io_int, {(64-38){1'b0}}};
+    //assign la_data_out = {wbs_adr_i, wbs_dat_i, io_int, {(64-38){1'b0}}};
+    assign la_data_out = {(128){1'b0}};
     // Assuming LA probes [63:32] are for controlling the count register  
     assign la_write = ~la_oenb[63:32] & ~{BITS{valid}};
     // Assuming LA probes [65:64] are for controlling the count clk & reset  

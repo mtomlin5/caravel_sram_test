@@ -19,8 +19,10 @@
 #include "verilog/dv/caravel/defs.h"
 #include "verilog/dv/caravel/stub.c"
 
-#define MEMORY_ADDR_BASE 0x30000000
-#define SRAM0_PORT1 0x30F00000
+#define SRAM0_PORT0 0x30000000
+#define SRAM0_PORT1 0x30100000
+#define SRAM1_PORT0 0x30200000
+#define SRAM1_PORT1 0x30300000
 #define SET_IO 0x30800000
 #define N 5
 
@@ -118,13 +120,12 @@ void main()
 
 	//reg_la2_oenb = reg_la2_iena = 0xFFFFFFFF;    // [95:64]
 
+	int i, temp;
 	volatile uint32_t *mem_ptr;
-	mem_ptr = (uint32_t *) MEMORY_ADDR_BASE;
-
 	volatile uint32_t *write_io_ptr;
 	write_io_ptr = (uint32_t *) SET_IO;
 
-	int i;
+	mem_ptr = (uint32_t *) SRAM0_PORT0;
 	for (i = 0; i < N; ++i) {
 		//Read
 		//temp = (int) *cochlea_interface_32;
@@ -137,8 +138,7 @@ void main()
 	}
 	*mem_ptr = 0xFFFFFFFF;
 
-	int temp;
-    mem_ptr = (uint32_t *) MEMORY_ADDR_BASE;
+    mem_ptr = (uint32_t *) SRAM0_PORT0;
 	for (i = 0; i < N+1; ++i) {
 		//Read
 		//temp = (int) *cochlea_interface_32;
@@ -165,6 +165,50 @@ void main()
 		//*mem_ptr = 10*(int) *mem_ptr;
 		mem_ptr = mem_ptr + 1; 
 	}
+
+	// //SRAM 1
+	// mem_ptr = (uint32_t *) SRAM1_PORT0;
+	// for (i = 0; i < N; ++i) {
+	// 	//Read
+	// 	//temp = (int) *cochlea_interface_32;
+		
+	// 	//Write
+	// 	*mem_ptr = 5*i;
+		
+	// 	//Increment Address
+	// 	mem_ptr = mem_ptr + 1;
+	// }
+	// *mem_ptr = 0xFFFFFFFF;
+
+ //    mem_ptr = (uint32_t *) SRAM1_PORT0;
+	// for (i = 0; i < N+1; ++i) {
+	// 	//Read
+	// 	//temp = (int) *cochlea_interface_32;
+	// 	temp = (int) *mem_ptr;
+	// 	//reg_mprj_datal = temp;
+
+	// 	*write_io_ptr = temp;
+
+	// 	//Write Back
+	// 	//*mem_ptr = 10*(int) *mem_ptr;
+	// 	mem_ptr = mem_ptr + 1; 
+	// }
+
+ //    mem_ptr = (uint32_t *) SRAM1_PORT1;
+	// for (i = 0; i < N+1; ++i) {
+	// 	//Read
+	// 	//temp = (int) *cochlea_interface_32;
+	// 	temp = (int) *mem_ptr;
+	// 	//reg_mprj_datal = temp;
+
+	// 	*write_io_ptr = temp;
+
+	// 	//Write Back
+	// 	//*mem_ptr = 10*(int) *mem_ptr;
+	// 	mem_ptr = mem_ptr + 1; 
+	// }
+
+
 
 
 }
